@@ -1,6 +1,9 @@
 package semrush_cache
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 // MaxSize set max cache size
 func MaxSize(size int) Option {
@@ -13,5 +16,12 @@ func MaxSize(size int) Option {
 func Expiration(duration time.Duration) Option {
 	return func(c *cache) {
 		c.expiration = duration
+	}
+}
+
+// Logger init logger
+func Logger(logger *log.Logger) Option {
+	return func(c *cache) {
+		c.logger = logger
 	}
 }

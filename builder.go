@@ -1,8 +1,9 @@
 package semrush_cache
 
 import (
+	"github.com/sanches1984/semrush-cache/strategy/recently_used"
+	"log"
 	"math"
-	"sync"
 	"time"
 )
 
@@ -23,69 +24,52 @@ type Cache interface {
 }
 
 type cache struct {
-	strategy   StrategyType
+	strategy   Cache
 	maxSize    int
 	expiration time.Duration
-
-	items map[string]CacheItem
-	mutex sync.RWMutex
+	logger     *log.Logger
 }
 
 func New(strategy StrategyType, options ...Option) Cache {
 	c := &cache{
-		strategy: strategy,
-		maxSize:  math.MaxInt,
-		mutex:    sync.RWMutex{},
+		maxSize: math.MaxInt,
+		logger:  log.Default(),
 	}
 
 	for _, opt := range options {
 		opt(c)
 	}
 
-	c.items = make(map[string]CacheItem, c.maxSize)
+	c.initCacheByStrategy(strategy)
 	return c
 }
 
 func (c *cache) Set(key string, value interface{}) {
-	if c.Size() == c.maxSize {
-		c.removeItem()
-	}
-
-	c.mutex.Lock()
-	c.items[key] = CacheItem{
-		Value:      value,
-		Expiration: time.Now().Add(c.expiration),
-	}
-	c.mutex.Unlock()
+	c.strategy.Set(key, value)
 }
 
 func (c *cache) Get(key string) (interface{}, bool) {
-	c.mutex.RLock()
-	item, found := c.items[key]
-	c.mutex.RUnlock()
-	return item, found
+	return c.strategy.Get(key)
 }
 
 func (c *cache) Delete(key string) {
-	c.mutex.Lock()
-	delete(c.items, key)
-	c.mutex.Unlock()
+	c.strategy.Delete(key)
 }
 
 func (c *cache) Size() int {
-	c.mutex.RLock()
-	size := len(c.items)
-	c.mutex.RUnlock()
-	return size
+	return c.strategy.Size()
 }
 
-func (c *cache) removeItem() {
-	switch c.strategy {
+func (c *cache) initCacheByStrategy(strategy StrategyType) {
+	switch strategy {
 	case StrategyTimeBasedExpiration:
-	// todo
-	case StrategyLeastFrequentlyUsed:
-	// todo
-	case StrategyLeastRecentlyUsed:
 		// todo
+	case StrategyLeastFrequentlyUsed:
+		// todo
+	case StrategyLeastRecentlyUsed:
+		c.strategy = recently_used.NewCache(c.maxSize)
+	default:
+		// todo
+		c.logger.Println("unknown cache strategy")
 	}
 }
