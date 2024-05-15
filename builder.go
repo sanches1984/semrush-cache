@@ -42,19 +42,23 @@ func New(strategy StrategyType, options ...Option) Cache {
 		opt(c)
 	}
 
+	c.logger.Printf("init strategy: %s", strategy)
 	c.initCacheByStrategy(strategy)
 	return c
 }
 
 func (c *cache) Set(key string, value interface{}) {
+	c.logger.Printf("set key: %s", key)
 	c.strategy.Set(key, value)
 }
 
 func (c *cache) Get(key string) (interface{}, bool) {
+	c.logger.Printf("get key: %s", key)
 	return c.strategy.Get(key)
 }
 
 func (c *cache) Delete(key string) {
+	c.logger.Printf("delete key: %s", key)
 	c.strategy.Delete(key)
 }
 

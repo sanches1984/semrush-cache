@@ -1,0 +1,19 @@
+image: registry.mycompany.com/my-project/build-env:latest
+
+cache:
+  paths:
+    - $GOPATH
+
+variables:
+  PKG_NAME: semrush-cache
+  GOOS: linux
+  ARTIFACTS_DIRECTORY: ".ci-build"
+
+stages:
+  - test
+
+coverage:
+  stage: test
+  script:
+    - make modules
+    - make coverage && go tool cover -func=cover.out
