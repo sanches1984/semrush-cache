@@ -23,6 +23,10 @@ func NewCache(capacity int, expiration time.Duration) *cache {
 }
 
 func (c *cache) Set(key string, value interface{}) {
+	if c.Size() >= c.capacity {
+		c.cleanup()
+	}
+
 	var expiration int64
 	if c.expiration > 0 {
 		expiration = time.Now().Add(c.expiration).UnixNano()
