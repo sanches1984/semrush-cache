@@ -1,6 +1,8 @@
 package semrush_cache
 
 import (
+	"github.com/sanches1984/semrush-cache/strategy/expiration"
+	"github.com/sanches1984/semrush-cache/strategy/frequently_used"
 	"github.com/sanches1984/semrush-cache/strategy/recently_used"
 	"log"
 	"math"
@@ -25,15 +27,15 @@ type Cache interface {
 
 type cache struct {
 	strategy   Cache
-	maxSize    int
+	capacity   int
 	expiration time.Duration
 	logger     *log.Logger
 }
 
 func New(strategy StrategyType, options ...Option) Cache {
 	c := &cache{
-		maxSize: math.MaxInt,
-		logger:  log.Default(),
+		capacity: math.MaxInt,
+		logger:   log.Default(),
 	}
 
 	for _, opt := range options {
@@ -63,11 +65,11 @@ func (c *cache) Size() int {
 func (c *cache) initCacheByStrategy(strategy StrategyType) {
 	switch strategy {
 	case StrategyTimeBasedExpiration:
-		// todo
+		c.strategy = expiration.NewCache(c.capacity, c.expiration)
 	case StrategyLeastFrequentlyUsed:
-		// todo
+		c.strategy = frequently_used.NewCache(c.capacity)
 	case StrategyLeastRecentlyUsed:
-		c.strategy = recently_used.NewCache(c.maxSize)
+		c.strategy = recently_used.NewCache(c.capacity)
 	default:
 		// todo
 		c.logger.Println("unknown cache strategy")

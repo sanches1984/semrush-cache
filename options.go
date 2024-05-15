@@ -8,7 +8,7 @@ import (
 // MaxSize set max cache size
 func MaxSize(size int) Option {
 	return func(c *cache) {
-		c.maxSize = size
+		c.capacity = size
 	}
 }
 
